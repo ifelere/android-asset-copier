@@ -18,7 +18,7 @@ It occurred to me recently that another developer might like it. Perhaps a simil
 
 New
 ---------------
-I have now exposed a command-line interface. Let say you have a pack at '/<path>/ic_rating_good.zip' and you want to copy it to your project a '<project path>/res', type on a command-line interface:
+I have now exposed a command-line interface. Let say you have a pack at `'/<path>/ic_rating_good.zip'` and you want to copy it to your project at `'/<project path>/res'`, type on a command-line interface:
 `java -jar <jarfile> '/<path>/ic_rating_good.zip' '<project path>/res' -console`. That does it. You can pass `-Q' to turn off 'Type enter key to exit'. 
 
 Future Features

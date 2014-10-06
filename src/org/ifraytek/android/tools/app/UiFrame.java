@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2014 IFELERE
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.ifraytek.android.tools.app;
 
@@ -28,7 +40,7 @@ import org.ifraytek.android.tools.events.CopierEventObject;
 import org.ifraytek.android.tools.events.CopierListener;
 
 /**
- *
+ * Main window having menu items and controls providing copy interface
  * @author IFELERE
  */
 public class UiFrame extends javax.swing.JFrame {
@@ -339,24 +351,7 @@ public class UiFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRemoveAllActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        if (settings != null) {
-            FileWriter fw = null;
-            try {
-                File f = getSettingsFile();
-                fw = new FileWriter(f);
-                settings.store(fw, "");
-            } catch (IOException ex) {
-                Logger.getLogger(UiFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }finally {
-                if (fw != null) {
-                    try {
-                        fw.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(UiFrame.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        }
+        onClosing();
     }//GEN-LAST:event_formWindowClosing
 
     private void addToLog(String str) {
@@ -517,7 +512,33 @@ public class UiFrame extends javax.swing.JFrame {
         this.listModel.removeIndices(lstHistory.getSelectedIndices());
     }
 
+    private void onClosing() {
+        //save current settings so that it can show up on next window launch
+        if (settings != null) {
+            FileWriter fw = null;
+            try {
+                File f = getSettingsFile();
+                fw = new FileWriter(f);
+                settings.store(fw, "");
+            } catch (IOException ex) {
+                Logger.getLogger(UiFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }finally {
+                if (fw != null) {
+                    try {
+                        fw.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(UiFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+    }
 
+
+    /**
+     * A utility class to control Jobs in one batch
+     * Treats in job in turn
+     */
     private class BatchTasks implements Runnable, java.beans.PropertyChangeListener {
 
         private int index = -1;
@@ -533,6 +554,7 @@ public class UiFrame extends javax.swing.JFrame {
         
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
+            //give this class upportunity to do next job when a task completes
             if ("state".equals(evt.getPropertyName())) {
                 SwingWorker.StateValue sv = (SwingWorker.StateValue) evt.getNewValue();
                 if (sv == SwingWorker.StateValue.DONE) {
@@ -565,6 +587,9 @@ public class UiFrame extends javax.swing.JFrame {
 
     }
 
+    /**
+     * A copy task class. Implements a {@link SwingWorker} to perform the copy on a background thread
+     */
     private class JobTask extends SwingWorker<Void, String> implements CopierListener {
 
         private JobModel copier;
@@ -617,6 +642,9 @@ public class UiFrame extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Encapsulates {@code Copier} instance to be used in a task
+     */
     private static class JobModel {
 
         private final Copier copier;
@@ -645,6 +673,9 @@ public class UiFrame extends javax.swing.JFrame {
 
     }
 
+    /**
+     * List model for Main window JList
+     */
     private static class JobListModel extends AbstractListModel<JobModel> {
 
         private final ArrayList<JobModel> jobs;

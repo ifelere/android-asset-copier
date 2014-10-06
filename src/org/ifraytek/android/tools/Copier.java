@@ -1,7 +1,19 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2014 IFELERE
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 package org.ifraytek.android.tools;
@@ -19,8 +31,16 @@ import org.ifraytek.android.tools.events.CopierEventObject;
 import org.ifraytek.android.tools.events.CopierListener;
 
 /**
- *
+ * <p>
+ * An abstract copier. It implements most of logic to coordinate events and map source to destination.
+ * </p>
+ * <p>
+ * The implementation is based on the structure of android assets (drawables in this case although the design is structured to handle any other android folder-set).
+ * It leaves the job of reading asset data and discovering asset names  to sub-classes
+ * </p>
+ * 
  * @author IFELERE
+ * @version 0.1.0
  */
 public abstract class Copier implements Runnable, java.io.Closeable {
     private final File source, destination;
@@ -28,6 +48,13 @@ public abstract class Copier implements Runnable, java.io.Closeable {
     private String[] folders;
     protected final EventListenerList listenerList = new EventListenerList();
     
+    /**
+     * Construct a copier based on source and destination files
+     * @param source The source file (typically a zipped file, a folder can also be used) 
+     * @param destination The destination folder (root folder to pre-defined assets on an android project file-tree)
+     * @param overwrite The if <tt>true</tt> then the file is overwritten if it exists
+     * @param folders An array of folders assets are expected to be copied to (and expected on source path)
+     */
     protected Copier(File source, File destination, boolean overwrite, String[] folders) {
         this.source = source;
         this.destination = destination;
@@ -67,6 +94,9 @@ public abstract class Copier implements Runnable, java.io.Closeable {
         this.folders = folders;
     }
 
+    /**
+     * Called to process a copy
+     */
     @Override
     public final void run() {
         if (this.folders != null && this.folders.length > 0) {
@@ -136,12 +166,16 @@ public abstract class Copier implements Runnable, java.io.Closeable {
     }
     
     protected void treat(String folder) {
+        // Discover existing asset names for a folder
         String[] names = this.getResourceNames(folder);
         if (names != null && names.length > 0) {
+            
             for (String name : names) {
+                //skip if asset of this name should be skipped
                 if (this.skipResources != null && Arrays.binarySearch(this.skipResources, name) != -1) {
                     continue;
                 }
+                //handle the file if it does not exists or it should be overwritten
                 if (!isExists(folder, name) || isOverwrite()) {
                     java.io.InputStream in = null;
                     try {
@@ -169,6 +203,12 @@ public abstract class Copier implements Runnable, java.io.Closeable {
         }
     }
 
+    /**
+     * Get whether an asset in a particular folder exists
+     * @param folder Name of the folder
+     * @param name Name of asset 
+     * @return <tt>true</tt> if it exists
+     */
     protected boolean isExists(String folder, String name) {
         File f = new File(this.getDestination(), folder);
         if (f.exists()) {
@@ -178,14 +218,30 @@ public abstract class Copier implements Runnable, java.io.Closeable {
         return false;
     }
 
+    /**
+     * Abstract method that should be implemented to read asset data given folder and name
+     * @param folder name of folder
+     * @param name name of asset
+     * @return {@link InputStream} input stream of asset data
+     * @throws IOException 
+     */
     protected abstract InputStream read(String folder, String name) throws IOException;
 
+    /**
+     * Writes asset data to a destination file constructed from a folder and name
+     * @param in asset data input stream
+     * @param folder folder name 
+     * @param name name of asset
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
     protected void write(InputStream in, String folder, String name) throws FileNotFoundException, IOException {
         File f = new File(this.getDestination(), folder);
         if (!f.exists()) {
             f.mkdir();
         }
         File file = new File(f, name);
+        //Not sure if this is necessary but of 'overwrite' flag is true then existing asset content must change complitely
         if (file.exists()) {
             file.delete();
         }

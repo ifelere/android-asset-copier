@@ -23,5 +23,5 @@ I have now exposed a command-line interface. Let say you have a pack at `'/<path
 
 Future Features
 -----------------
-- Ability to send 'overwrite' flags to console app
-- Handling of multiple packs
+- Ability to send 'overwrite' flags to the command-line interface
+- Handling of multiple packs throught the command-line interface
